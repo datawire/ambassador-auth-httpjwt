@@ -1,0 +1,57 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-auth-httpjwt
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-api
+      port: 80
+      targetPort: http-api
+  selector:
+    app: ambassador-auth-httpjwt
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ambassador-auth-httpjwt
+type: Opaque
+data:
+  users.yaml: ""
+
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: ambassador-auth-httpjwt
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: ambassador-auth-httpjwt
+  template:
+    metadata:
+      labels:
+        app: ambassador-auth-httpjwt
+    spec:
+      containers:
+        - name: ambassador-auth-basicauth
+          image: quay.io/datawire/ambassador-auth-httpjwt:__DOCKER_TAG__
+          ports:
+            - name: http-api
+              containerPort: 5000
+          volumeMounts:
+            - name: ambassador-auth-httpjwt
+              mountPath: /var/lib/ambassador/auth-httpjwt
+              readOnly: true
+      volumes:
+        - name: ambassador-auth-httpjwt
+          secret:
+            secretName: ambassador-auth-httpjwt
+            items:
+              - key: users.yaml
+                path: users.yaml

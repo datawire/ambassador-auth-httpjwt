@@ -1,0 +1,5 @@
+-r main.txt
+pytest==3.4.0
+pytest-flask==0.10.0
+pytest-mock==1.7.0
+tox==3.0.0rc1
